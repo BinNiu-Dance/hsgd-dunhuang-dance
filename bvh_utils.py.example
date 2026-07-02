@@ -1,0 +1,29 @@
+"""Example skeleton metadata interface required by model.py.
+
+Create a project-specific `bvh_utils.py` with the same field names before
+running the model. The values below are placeholders and must be replaced by
+the exact 27-joint skeleton topology and family labels used by your data
+preprocessing pipeline.
+"""
+
+NUM_JOINTS = 27
+NUM_FAMILIES = 7
+
+# Parent index for each joint. Use -1 for the root joint.
+# Replace these placeholder values with the retargeted BVH skeleton topology.
+PARENTS = [
+    -1, 0, 1, 2, 3, 0, 5, 6, 7,
+    0, 9, 10, 11, 0, 13, 14, 15,
+    0, 17, 18, 19, 0, 21, 22, 23,
+    0, 25,
+]
+
+# Replace group membership with the exact limb partition used in experiments.
+LIMB_GROUPS = {
+    "torso": [0, 1, 2, 3, 4],
+    "left_arm": [5, 6, 7, 8],
+    "right_arm": [9, 10, 11, 12],
+    "left_leg": [13, 14, 15, 16],
+    "right_leg": [17, 18, 19, 20],
+    "head": [21, 22, 23, 24, 25, 26],
+}
