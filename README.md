@@ -1,160 +1,112 @@
 # Spectral Graph Diffusion for Style-Preserving Skeletal Motion Completion
 
-Official implementation of **Hierarchical Spectral Graph Diffusion (HSGD)** for style-preserving skeletal motion completion on Dunhuang dance.
+PyTorch model skeleton for **Hierarchical Spectral Graph Diffusion (HSGD)**, a style-preserving skeletal motion completion framework for Dunhuang dance motion sequences.
 
-> **Bin Niu**, **Yitong Wang**, and **Rui Yang**  
-> *IEEE Signal Processing Letters*
+This initial release focuses on the deep-learning framework and the core model implementation. Training, evaluation, dataset preprocessing, and checkpoint files are intentionally kept out of this first code drop and will be added after cleanup.
 
-## Overview
+## Method Overview
 
-Skeletal motion completion recovers missing motion segments from partially observed joint sequences. This repository presents HSGD, a framework specifically designed for traditional artistic dances like Dunhuang dance, where preserving structural plausibility, temporal continuity, and contextual consistency is critical.
+![HSGD framework](assets/images/hsgd-framework.png)
 
-### Key Features
+HSGD models partially observed skeletal motion with a unified mask formulation. Visible frames provide coordinate context, while missing frames are represented by learnable mask tokens. A hierarchical spectral graph encoder captures joint-, limb-, and body-level dependencies, applies temporal spectral modulation, and conditions a diffusion decoder with style-rhythm information extracted from observed motion.
 
-- **Unified Masked Formulation**: Handles motion prediction, interpolation, and random missing-frame completion in a unified framework
-- **Hierarchical Spectral Encoding**: Combines multi-scale body structure modeling (joint, limb, body levels) with frequency-domain temporal spectral modulation using DCT
-- **Style-Rhythm Conditioning**: Preserves dance style and rhythmic patterns through style-rhythm conditioned diffusion decoding
-- **Strong Performance**: 
-  - 5.4% and 8.3% MAE reduction over strongest baseline in prediction and interpolation
-  - 8.0% and 9.0% improvement in random missing-frame completion
-  - High style preservation (88.6% Family Consistency on Dunhuang-Video)
+## Completion Examples
 
-## Architecture
+![Motion completion examples](assets/images/completion-results.png)
 
-The HSGD framework consists of four main components:
+The model is designed for three completion settings used in the paper:
 
-### 1. **Unified Masked Motion Modeling**
-- Represents visible frames with coordinate projections and unknown frames with learnable mask tokens
-- Includes joint embeddings and temporal positional encodings
-- Enables unified handling of different observation modes (prediction, interpolation, random completion)
+- **Prediction**: future frames are missing.
+- **Interpolation**: middle frames are missing between observed endpoints.
+- **Random completion**: frames are missing at random positions.
 
-### 2. **Hierarchical Spectral Spatio-Temporal Encoder**
-- **Joint-level**: Multi-branch adaptive graph convolution fusing first-order, second-order, and dynamic adjacencies
-- **Limb-level**: Progressive pooling from joint features
-- **Body-level**: Global posture representation via query pooling
-- **Cross-scale Fusion**: Gated mechanism to fuse representations across scales
-- **Temporal Spectral Modulation**: DCT-based frequency domain processing with learnable frequency gains and low-pass filtering
+## Repository Layout
 
-### 3. **Style-Rhythm Conditioned Representation**
-- Extracts style vector exclusively from visible frames using attention pooling
-- Applies FiLM modulation to inject style into frame-level representations
-- Ensures recovered motion remains stylistically consistent with observed context
-
-### 4. **Conditional Diffusion Motion Decoder**
-- Iterative denoising from Gaussian noise at masked positions
-- Visible frame clamping during inference for context consistency
-- Direct $x_0$ prediction parameterization for coordinate reconstruction
-
-## Datasets
-
-HSGD is evaluated on two public 3D Dunhuang dance motion datasets:
-
-| Dataset | Description | Scale |
-|---------|-------------|-------|
-| **Chang-E** | Optical motion-capture | 8 categories, ~40 minutes |
-| **Dunhuang-Video** | Monocular video reconstruction | 7 themes, 99 actions, 26,220 frames |
-
-Both datasets provide 30 fps BVH sequences retargeted to a unified 27-joint skeleton, converted to front-view 2D normalized coordinates.
-
-## Experimental Results
-
-### Motion Prediction & Interpolation (Table 1)
-
-| Method | Dunhuang-Video (Avg.) | Chang-E (Avg.) |
-|--------|----------------------|----------------|
-| **HSGD (ours)** | **0.0847** | **0.0791** |
-| HumanMAC | 0.0895 | 0.0863 |
-| ST-GraphFormer | 0.0937 | 0.0886 |
-| ST-GCN+Trans. | 0.0927 | 0.0894 |
-
-### Random Missing-Frame Completion (40% masked, Table 2)
-
-| Method | Dunhuang-Video | Chang-E |
-|--------|----------------|---------|
-| **HSGD (ours)** | **0.0642** | **0.0589** |
-| HumanMAC | 0.0698 | 0.0647 |
-| ST-GCN+Trans. | 0.0741 | 0.0682 |
-
-### Ablation Study (Dunhuang-Video)
-
-| Component | Impact (Δ MAE) | Family Consistency |
-|-----------|----------------|-------------------|
-| Full Model | 0.0000 | 88.6% |
-| w/o unified mask | +0.0307 | 80.4% |
-| w/o hierarchical graph | +0.0318 | 78.9% |
-| w/o frequency module | +0.0243 | 83.5% |
-| w/o style encoder | +0.0136 | 76.8% |
-| w/o diffusion decoder | +0.0279 | 79.6% |
-
-## Requirements
-
-- Python 3.8+
-- PyTorch 1.9+
-- CUDA 11.0+ (for GPU acceleration)
+```text
+hsgd-dunhuang-dance/
+|-- assets/images/              # README figures
+|-- configs/                    # Default model/task configuration
+|-- docs/                       # Release notes
+|-- scripts/                    # Lightweight utility scripts
+|-- src/hsgd/                   # Python package
+|   |-- __init__.py
+|   |-- bvh_utils.py.example    # Skeleton metadata template
+|   `-- model.py                # Core HSGD model
+|-- tests/                      # Basic import/smoke checks
+|-- pyproject.toml
+|-- requirements.txt
+`-- README.md
+```
 
 ## Installation
 
 ```bash
 git clone https://github.com/BinNiu-Dance/hsgd-dunhuang-dance.git
 cd hsgd-dunhuang-dance
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-## Usage
-
-### Training
+For editable local development:
 
 ```bash
-python train.py --config configs/hsgd.yaml --dataset dunhuang_video
+python -m pip install -e .
 ```
 
-**Training Configuration:**
-- GPU: NVIDIA RTX 3090 (single GPU)
-- Input length: T=60 (2.0 seconds at 30 fps)
-- Joints: J=27, Coordinates: C=2
-- Hidden size: 128
-- Encoder blocks: 3 hierarchical spectral graph blocks
-- Epochs: 200
-- Batch size: 16
-- Learning rate: 3×10⁻⁴
-- Diffusion steps: 200 (training), 8 (inference)
+## Required Skeleton Metadata
 
-### Inference
+The model imports four dataset-specific constants:
 
-```bash
-python inference.py --model_path checkpoint.pth --task prediction
+- `NUM_JOINTS`
+- `PARENTS`
+- `LIMB_GROUPS`
+- `NUM_FAMILIES`
+
+Copy `src/hsgd/bvh_utils.py.example` to `src/hsgd/bvh_utils.py` and replace the placeholder skeleton topology and family count with the metadata used by your BVH preprocessing pipeline.
+
+## Minimal Model Usage
+
+```python
+import torch
+from hsgd.model import DunhuangMotionModel, diffusion_x0_loss
+
+model = DunhuangMotionModel(dim=128, hst_blocks=3, trf_depth=2, nhead=4)
+
+x = torch.randn(2, 60, 27, 2)        # (batch, frames, joints, xy)
+mask = torch.zeros(2, 60).bool()     # True means hidden frame
+mask[:, 40:] = True                  # prediction-style mask
+
+out = model(x, mask)
+completed = out["pred"]
+
+train_out = model.forward_train(x, mask)
+loss, loss_items = diffusion_x0_loss(train_out["pred"], x, mask)
 ```
 
-Supported tasks: `prediction`, `interpolation`, `random_completion`
+## Model Components
+
+- Unified masked motion modeling for prediction, interpolation, and random missing-frame completion.
+- Multi-hop adaptive joint graph convolution over the 27-joint skeleton.
+- Hierarchical joint-limb-body representation with cross-scale fusion.
+- DCT-based temporal spectral modulation.
+- Style-rhythm conditioning through visible-frame attention pooling and FiLM modulation.
+- Conditional diffusion decoder with visible-frame clamping during sampling.
+
+## Development Notes
+
+This repository is a lightweight release of the model side of the project. It does not include raw BVH data, private preprocessing outputs, trained checkpoints, or submission files.
 
 ## Citation
 
-If you use this work, please cite:
-
 ```bibtex
-@article{niu2024spectral,
+@misc{niu2026hsgd,
   title={Spectral Graph Diffusion for Style-Preserving Skeletal Motion Completion},
   author={Niu, Bin and Wang, Yitong and Yang, Rui},
-  journal={IEEE Signal Processing Letters},
-  year={2024}
+  year={2026},
+  note={Code release}
 }
 ```
 
-## Acknowledgments
-
-This work was supported by the Humanities and Social Sciences Research Project of the Ministry of Education of China under Grant 25XJC760005.
-
-**Authors:**
-- Bin Niu, School of Dance, Northwest Normal University, Lanzhou, China
-- Yitong Wang, School of Dance, Northwest Normal University, Lanzhou, China
-- Rui Yang, School of Information Science and Engineering, Lanzhou University, Lanzhou, China
-
-## License
-
-[Add your license here]
-
 ## Contact
 
-For questions or inquiries, please contact:
 - Bin Niu: bin_niu@nwnu.edu.cn
 - Rui Yang: rykeryang@163.com

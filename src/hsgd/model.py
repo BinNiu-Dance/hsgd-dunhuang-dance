@@ -9,7 +9,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from bvh_utils import NUM_JOINTS, PARENTS, LIMB_GROUPS, NUM_FAMILIES
+try:
+    from .bvh_utils import NUM_JOINTS, PARENTS, LIMB_GROUPS, NUM_FAMILIES
+except ImportError:  # Allows direct use of this file outside the package.
+    from bvh_utils import NUM_JOINTS, PARENTS, LIMB_GROUPS, NUM_FAMILIES
 
 
 # ---------------------------------------------------------------------------

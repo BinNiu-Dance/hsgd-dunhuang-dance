@@ -1,0 +1,21 @@
+model:
+  name: hsgd
+  dim: 128
+  hst_blocks: 3
+  transformer_depth: 2
+  attention_heads: 4
+  diffusion_steps: 200
+  ddim_steps: 8
+  max_frames: 512
+
+data:
+  num_joints: 27
+  coordinate_dim: 2
+  sequence_length: 60
+  fps: 30
+
+tasks:
+  - prediction
+  - interpolation
+  - random_completion
+

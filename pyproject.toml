@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hsgd-dunhuang-dance"
+version = "0.1.0"
+description = "Hierarchical Spectral Graph Diffusion model for Dunhuang dance skeletal motion completion."
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+  {name = "Bin Niu", email = "bin_niu@nwnu.edu.cn"},
+  {name = "Yitong Wang", email = "yitong_wang@nwnu.edu.cn"},
+  {name = "Rui Yang", email = "rykeryang@163.com"}
+]
+dependencies = [
+  "numpy>=1.20",
+  "torch>=1.9"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

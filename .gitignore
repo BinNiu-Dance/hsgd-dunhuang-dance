@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Legacy root-level figure copies
+/FIG1.png
+/FIG2.png
+
+# Data and generated artifacts
+data/
+datasets/
+checkpoints/
+outputs/
+runs/
+logs/
+wandb/
+*.pth
+*.pt
+*.ckpt
+*.npy
+*.npz
+
+# Local metadata created from the example template
+src/hsgd/bvh_utils.py
